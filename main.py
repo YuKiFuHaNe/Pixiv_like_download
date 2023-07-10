@@ -36,7 +36,6 @@ def get_data(page)->dict:
     resp.encoding = 'utf-8'
     data = resp.json()
     # print(resp.json())
-    time.sleep(3)
     resp.close()
     return data
 
@@ -51,6 +50,7 @@ def get_picture_url(*args:str)->list:
 
     '''
     picture_url,picture_id, title, pagecount, date = args
+    title = title.replace("|","").replace("/","").replace("?","").replace("*","").replace(":","").replace("<","").replace(">","")
     picture_id = int(picture_id)
     pagecount = int(pagecount)
     print(picture_url,picture_id,title,pagecount,date)
@@ -73,10 +73,15 @@ def get_picture_url(*args:str)->list:
         # headers['referer']= f'https://pixivic.com/illusts/{picture_id}?VNK=418eebdd'
         url_id = f'https://www.pixiv.net/ajax/illust/{picture_id}/pages?lang=zh'
         # res = requests.get(url_id, headers=headers)
-        try:
-            time.time(3)
-            res = requests.get(url[i],headers=headers)
-        except:
+        res = requests.get(url[i],headers=headers)
+        # print(res.text)
+        if res.text.find("404 Not Found") != -1:
+            '''
+            <!DOCTYPE html>
+            <html>
+                <h1>404 Not Found</h1>
+            </html>
+            '''
             if extension_name == "jpg":
                 extension_name = "png"
             else:
@@ -91,7 +96,8 @@ def get_picture_url(*args:str)->list:
             picture_id,
             i,
             extension_name),headers=headers)
-        f = open("{}_p{}_pictureID{}.jpg".format(title, i, picture_id), mode="wb")
+            # print(res.text)
+        f = open("./download/{}_p{}_pictureID{}.jpg".format(title, i, picture_id), mode="wb")
         f.write(res.content)
         f.close()
         res.close()
@@ -108,21 +114,25 @@ while (1):
     # 判断该页是否请求成功与是否存在图片数据
     if error == False and lenght > 0:
         # 便利该页的所以收藏图片
-        for i in range(lenght):
-            picture_data = body[i]
-            picture_url = picture_data['url']
-            picture_id = picture_data['id']
-            title = picture_data['title']
-            pagecount = picture_data['pageCount']
-            createdate = picture_data['createDate']
-            update = picture_data['updateDate'] # updateDate '2023-01-26T03:45:10+09:00'
-            date = datetime.fromisoformat(update)
-            picture_list = get_picture_url(picture_url,picture_id,title,pagecount,date)
-            print(picture_list)
-            with open('test.txt',mode="a+") as f:
-                for i in picture_list:
-                    f.write(i+"\n")
-    break
+            for i in range(lenght):
+                time.sleep(3)
+                try:
+                    picture_data = body[i]
+                    picture_url = picture_data['url']
+                    picture_id = picture_data['id']
+                    title = picture_data['title']
+                    pagecount = picture_data['pageCount']
+                    createdate = picture_data['createDate']
+                    update = picture_data['updateDate'] # updateDate '2023-01-26T03:45:10+09:00'
+                    date = datetime.fromisoformat(update)
+                    picture_list = get_picture_url(picture_url,picture_id,title,pagecount,date)
+                    print(picture_list)
+                    with open('test.txt',mode="a+") as f:
+                        for i in picture_list:
+                            f.write(i+"\n")
+                except:
+                    continue
+
     if page == 1:
         page=48
     else:
