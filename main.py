@@ -11,8 +11,9 @@ pixiv_id = re.search(r"PHPSESSID=(?P<pixivid>\d+)_",cookie).group("pixivid")
 print(pixiv_id)
 base_url = "https://www.pixiv.net/"
 # like_url = "https://www.pixiv.net/users/{}/bookmarks/artworks".format(pixiv_id)
-page = 1
-step = 48
+page = 624      # 开始 页*48 1\48\96...
+sleep_time = 1  # 每张图片下载完再次请求时间
+step = 48       # page页面插画数量 默认48
 
 # choose = input("是否使用代理(Y|y):")
 # if choose == 'Y' or 'y':
@@ -105,7 +106,7 @@ def get_picture_url(*args:str)->list:
 
 
 
-while (1):
+while(1):
     data = get_data(page=page)
     error = data['error']
     body = data['body']['works']
@@ -113,7 +114,7 @@ while (1):
     # print(body)
     # 判断该页是否请求成功与是否存在图片数据
     if error == False and lenght > 0:
-        # 便利该页的所以收藏图片
+        # 遍历该页的所以收藏图片
             for i in range(lenght):
                 time.sleep(3)
                 try:
